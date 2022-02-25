@@ -1,0 +1,59 @@
+captainVersion: 4
+services:
+    $$cap_appname-db:
+        image: $$cap_db_type:$$cap_database_version
+        volumes:
+            - $$cap_appname-db-data:/var/lib/postgresql/data
+        restart: always
+        environment:
+            POSTGRES_DB: mealie
+            POSTGRES_USER: $$cap_db_user
+            POSTGRES_PASSWORD: $$cap_db_pass
+        caproverExtra:
+            notExposeAsWebApp: 'true'
+    $$cap_appname-mealie:
+        depends_on:
+            - $$cap_appname-db
+        image: hkotel/mealie:latest
+        volumes:
+            - $$cap_appname-mealie-data:/app/data
+        restart: always
+        environment:
+            POSTGRES_SERVER: srv-captain--$$cap_appname-db
+            POSTGRES_PORT: 5432
+caproverOneClickApp:
+    variables:
+        - id: $$cap_db_user
+          label: Database user
+          defaultValue: mealie
+          validRegex: /^([a-zA-Z0-9])+$/
+        - id: $$cap_db_pass
+          label: Database password
+          description: ''
+          validRegex: /.{1,}/
+        - id: $$cap_wp_version
+          label: Mealie Version
+          defaultValue: 'latest'
+          description: Check out their Docker page for the valid tags https://hub.docker.com/r/hkotel/mealie/tags/
+          validRegex: /^([^\s^\/])+$/
+        - id: $$cap_db_type
+          label: Database Type
+          defaultValue: postgres
+          description: Postgres, sqlite not supported. You need to change the version according to which DB is selected. It is case sensitive.
+          validRegex: /^(postgres)$/
+        - id: $$cap_database_version
+          label: Database Version, default is Postgres
+          defaultValue: '14-alpine'
+          description: Check out the Docker pages for the valid tags https://hub.docker.com/_/postgres?tab=tags
+          validRegex: /^([^\s^\/])+$/
+    instructions:
+        start: >-
+            Mealie is an online recipe manager.
+             Enter your Mealie Configuration parameters and click on next. A Postgres (database) and a Mealie container will be created for you.  The process will take about a minute for the process to finish.
+        end: >
+            Mealie is deployed and available as $$cap_appname-meali . Default credentials: changeme@email.com // MyPassword 
+             IMPORTANT: It will take up to 2 minutes for Mealie to be ready. Before that, you might see a 502 error page.
+    displayName: Mealie
+    isOfficial: false
+    description: Mealie is a content management system based on Vue and Postgres that is usually used with the Postgres or MariaDB database
+    documentation: Taken from https://hay-kot.github.io/mealie/documentation/
